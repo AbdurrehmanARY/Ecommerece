@@ -1,13 +1,12 @@
 import { Users } from "../model/user.model.js"
 import bcrypt from "bcrypt";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { sendCookie } from "../utils/cookie.js";
 export const register=async(req,res)=>{
-const {name,email,password}=req.body
-console.log(name,email,password)
-
+const {name,email,password,role}=req.body
 
 if (
-    [name, email, password].some((field) => field?.trim() === "")
+    [name, email, password,role].some((field) => field?.trim() === "")
 ) {
     res.status(400).json({
         message:"All input are require",
@@ -16,7 +15,8 @@ if (
 }
    
 
-const tempAvatar = req.files?.avatar[0]?.path;
+// const tempAvatar = req.files?.avatar[0]?.path;
+const tempAvatar = req.file.path
 if (!tempAvatar) {
     res.status(400).json({
         message:"avatar is required"
@@ -24,15 +24,12 @@ if (!tempAvatar) {
 }
 
 const avatar = await uploadOnCloudinary(tempAvatar)
-if (!avatar) {
-    res.staus(400).json({
-        message:"avatar file is required"
-    })
-}
-
-
-
-
+console.log(avatar.url)
+// if (!avatar) {
+//     res.status(400).json({
+//         message:"avatar file is required"
+//     })
+// }
 try {
     // check user is already exist or not
 
@@ -53,14 +50,14 @@ try {
         name,
         email,
         password: hashedPassword,
-        // role,
-        // avatar,
+        role,
+        avatar:avatar.url,
       });
-    //   sendCookie(user, res, "register successfully", 202);
-    res.status(202).json({
-        message:"register successfully",
-        user
-    })
+      sendCookie(user, res, "register successfully", 202);
+    // res.status(202).json({
+    //     message:"register successfully",
+    //     user
+    // })
     }
   } catch (err) {
     console.log(err);
